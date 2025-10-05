@@ -8,6 +8,7 @@ Picar-X Python library for Raspberry Pi.
 - Robot Hat: <https://docs.sunfounder.com/projects/robot-hat-v4/en/latest/>
 - Forum: <https://forum.sunfounder.com/>
 - Sunfounder: <https://www.sunfounder.com/>
+- Kids guide: [`docs/KIDS_GUIDE.md`](docs/KIDS_GUIDE.md)
 
 ## Installation
 
