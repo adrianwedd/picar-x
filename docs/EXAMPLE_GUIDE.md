@@ -23,6 +23,7 @@ This guide catalogs every script shipped under `example/` and `gpt_examples/`, s
 | `example/servo_zeroing.py` | Zero all servos | Car on stand, run with `sudo`
 | `gpt_examples/gpt_car.py` | GPT-driven agent with Piper fallback | OpenRouter key, mic, speaker, camera
 | `gpt_examples/preset_actions.py` | Preview canned actions/sounds | Motors/servos connected
+| `scripts/hourly_chime.py` | Hourly time announcement (08:00–19:00) | Speaker, run with `sudo`
 
 Scripts not listed in the table are either modules imported elsewhere or legacy helpers.
 
@@ -129,6 +130,11 @@ Scripts not listed in the table are either modules imported elsewhere or legacy 
 ### utils.py
 - Shared utility functions for colored terminal output, SoX gain adjustments, and sound playback.
 
+### scripts/hourly_chime.py
+- Announces the current time on the hour between 08:00 and 19:00 using the Robot HAT speaker.
+- Run with `sudo python3 scripts/hourly_chime.py`; keep the Pi powered and the speaker enabled (for some hats, `pinctrl set 20 op dh`).
+- Modify `START_HOUR`/`END_HOUR` in the script to change the schedule.
+
 ## Operational Checklist
 
 1. **Update firmware & packages:** Ensure `sudo apt update && sudo apt upgrade` has been run recently, and install `piper-tts`, `SpeechRecognition`, `libcamera` tools as shown above.
@@ -142,4 +148,3 @@ Scripts not listed in the table are either modules imported elsewhere or legacy 
 - The commands above assume you are inside the repository root (`/home/pi/picar-x/`).
 - Update this guide when new demos are added or behaviour changes significantly.
 - If you customize scripts (e.g., different sensor pins), note the changes alongside the relevant section for future contributors.
-
