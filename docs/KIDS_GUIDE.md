@@ -27,7 +27,7 @@
    cd /home/pi/picar-x
    ```
 3. **Choose a demo** from the table below.
-4. **Type `sudo python3 <path/to/demo.py>`** and press Enter.
+4. **Type `sudo /home/pi/picar_venv/bin/python <path/to/demo.py>`** and press Enter. (This Python has all the robot tools pre-installed.)
 5. **Watch what happens!** Keep hands away from the wheels.
 6. **Stop anytime** with `Ctrl` + `C` (press the keys at the same time). Press twice if the program keeps running.
 
@@ -38,16 +38,16 @@
 | Program | What happens? | How to play |
 | --- | --- | --- |
 | `example/1.move.py` | The wheels spin forward and the front wheels steer left and right. | Watch from a safe distance while the car is lifted so the wheels can spin freely. |
-| `example/2.keyboard_control.py` | You drive the car with the keys `W A S D`, and move the camera with `I J K L`. | Sit with a helper who can type. Drive slowly and avoid pets! |
-| `example/3.tts_example.py` | The car honks, plays a song, and says “Hello.” | Press the keys shown on screen to make different sounds. |
+| `example/2.keyboard_control.py` | You drive the car with the keys `W A S D`, and move the camera with `I J K L`. | Needs a real keyboard plugged into the Pi or an SSH session opened with `ssh -tt`. Drive slowly and avoid pets! |
+| `example/3.tts_example.py` | The car honks, plays a song, and says “Hello.” | Needs a real keyboard (`ssh -tt` or HDMI). Press the keys shown on screen to make different sounds. |
 | `example/4.avoiding_obstacles.py` | The car drives forward and turns or backs up when it sees something in front of it. | Place a box or toy in front of the car and watch it react. |
 | `example/5.minecart_plus.py` | The car follows a dark line on the floor. | Ask a helper to draw a thick black track and let the car follow it. |
 | `example/6.cliff_detection.py` | The car stops and backs away when it reaches the edge of a table or a bright line. | Try it near a bright strip or edge (with help so it doesn’t fall). |
-| `example/7.display.py` | A special screen shows colors, faces, and QR codes the camera sees. | Use the keyboard to switch modes and watch the display with an adult. |
+| `example/7.display.py` | A special screen shows colors, faces, and QR codes the camera sees. | Open a browser to `http://<pi-address>:9000/mjpg` or plug in an HDMI display to see the video.
 | `example/8.stare_at_you.py` | The camera looks left, right, up, and down to follow your face. | Smile at the car and see it “stare” at you. |
-| `example/9.record_video.py` | Start and stop video recordings from the keyboard. | Make a short movie of your car driving around. |
-| `example/10.bull_fight.py` | The car turns toward red objects and chases them. | Wave a red toy and see the car follow it. |
-| `example/11.video_car.py` | Control the car from a computer screen, take photos, and see live video. | Ask an adult to start the program, then drive carefully while watching the video feed. |
+| `example/9.record_video.py` | Start and stop video recordings from the keyboard. | Needs a real keyboard (`ssh -tt` or HDMI). Make a short movie of your car driving around. |
+| `example/10.bull_fight.py` | The car turns toward red objects and chases them. | Watch the live video at `http://<pi-address>:9000/mjpg` (or HDMI) to see what the camera sees. |
+| `example/11.video_car.py` | Control the car from a computer screen, take photos, and see live video. | Visit `http://<pi-address>:9000/mjpg` in a browser for the stream; then use the keyboard to drive. |
 | `example/12.treasure_hunt.py` | The car tells you a color to find and cheers when it sees it. | Hold up colored cards and try the one it asks for. |
 | `example/13.app_control.py` | Drive the car with a phone/tablet app, use line-following, horn, and more. | Pair the SunFounder app (adult help needed) and explore the buttons. |
 
@@ -71,14 +71,14 @@ Each program is explained in `docs/EXAMPLE_GUIDE.md`. Ask your grown-up to help 
 | `example/12.treasure_hunt.py` | Color detect + threading + TTS | Randomly selects target colors and announces via `robot_hat.TTS`. |
 | `example/13.app_control.py` | SunFounderController app integration | Publishes telemetry and handles joystick/voice toggles, line-following, obstacle avoidance. |
 | `example/calibration/` | Grayscale sensor calibration | Writes reference values to `fileDB` entries. |
-| `gpt_examples/gpt_car.py` | OpenRouter chat + Piper TTS | Requires mic, speaker, optional camera; fallback to Piper voice when OpenRouter TTS disabled. |
+| `gpt_examples/gpt_car.py` | OpenRouter chat + Piper TTS | Requires mic, speaker, optional camera; needs `OPENROUTER_API_KEY` set in `gpt_examples/keys.py`. |
 | `scripts/hourly_chime.py` | `robot_hat.TTS`, scheduling | Speaks time hourly (08:00–19:00). |
 | `scripts/saytime.py` | `robot_hat.TTS` | Speaks current time on demand; customizable prefix/language. |
 
 For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.md#Other Utilities`, and `docs/NEXT_STEPS.md`.
 
 ## Talking to Your Car (with Help)
-- Have a supervisor run `gpt_examples/gpt_car.py --keyboard` so you can type messages to the car.
+- Have a supervisor run `gpt_examples/gpt_car.py --keyboard` so you can type messages to the car. (Make sure your helper puts the OpenRouter API key into `gpt_examples/keys.py` first.)
 - To let the car listen to your voice, run it without `--keyboard` and talk loudly and clearly.
 - Always let an adult handle the microphone and speaker wires. Make sure the speaker is turned on (`sudo pinctrl set 20 op dh`).
 - If the car says it cannot hear you, stop the program (`Ctrl` + `C`), check the microphone plug, and try again.
@@ -97,7 +97,7 @@ For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.m
 4. **Run it together.** In the terminal, type:
    ```bash
    cd /home/pi/picar-x
-   sudo python3 example/my_new_trick.py
+   sudo /home/pi/picar_venv/bin/python example/my_new_trick.py
    ```
 5. **Test, tweak, repeat!** If the car moves too fast or slow, ask Codex to adjust the numbers.
 
@@ -106,6 +106,7 @@ For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.m
 - If the car says `ModuleNotFoundError`, it means a library is missing—ask Codex or an adult to install it.
 - To stop a script quickly, press `Ctrl` + `C` twice.
 - Save new ideas in a notebook so Codex can help you build them later.
+- If you use SSH from another computer, ask your helper to connect with `ssh -tt` so programs that need a keyboard work properly.
 
 ## If Something Goes Wrong
 - **Car won’t move?** Check the battery and make sure the wheels aren’t touching the ground while testing.
