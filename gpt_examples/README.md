@@ -4,148 +4,121 @@
 
 ## Install dependencies
 
-- Make sure you have installed Pidog and related dependencies first
+- Ensure the base Picar-X stack (Pidog, Robot HAT libraries, etc.) is installed first.
+  <https://docs.sunfounder.com/projects/picar-x-v20/en/latest/python/python_start/install_all_modules.html>
 
-    <https://docs.sunfounder.com/projects/picar-x-v20/en/latest/python/python_start/install_all_modules.html>
-
-- Install openai and speech processing libraries
+- Install speech and HTTP helpers
 
 > [!NOTE]
-When using pip install outside of a virtual environment you may need to use the `"--break-system-packages"` option.
+When using pip install outside of a virtual environment you may need to add the `"--break-system-packages"` flag.
 
-    ```bash
-    sudo pip3 install -U openai --break-system-packages
-    sudo pip3 install -U openai-whisper --break-system-packages
-    sudo pip3 install SpeechRecognition --break-system-packages
+```bash
+sudo pip3 install -U requests --break-system-packages
+sudo pip3 install -U SpeechRecognition --break-system-packages
+sudo pip3 install -U piper-tts --break-system-packages
 
-    sudo apt install python3-pyaudio
-    sudo apt install sox
-    sudo pip3 install -U sox --break-system-packages
-    ```
-
-----------------------------------------------------------------
-
-## Create your own GPT assistant
-
-### GET API KEY
-
-<https://platform.openai.com/api-keys>
-
-Fill your OPENAI_API_KEY into the `keys.py` file.
-
-![tutorial_1](./tutorial_1.png)
-
-### Create assistant and set Assistant ID
-
-<https://platform.openai.com/assistants>
-
-Fill your ASSISTANT_ID into the `keys.py` file.
-
-![tutorial_2](./tutorial_2.png)
-
-- Set Assistant Name
-
-- Describe your Assistant
-
-```markdown
-    You are a small car with AI capabilities named PaiCar-X. You can engage in conversations with people and react accordingly to different situations with actions or sounds. You are driven by two rear wheels, with two front wheels that can turn left and right, and equipped with a camera mounted on a 2-axis gimbal.
-
-    ## Response with Json Format, eg:
-    {"actions": ["start engine", "honking", "wave hands"], "answer": "Hello, I am PaiCar-X, your good friend."}
-
-    ## Response Style
-    Tone: Cheerful, optimistic, humorous, childlike
-    Preferred Style: Enjoys incorporating jokes, metaphors, and playful banter; prefers responding from a robotic perspective
-    Answer Elaboration: Moderately detailed
-
-    ## Actions you can do:
-    ["shake head", "nod", "wave hands", "resist", "act cute", "rub hands", "think", "twist body", "celebrate, "depressed"]
-    ## Sound effects:
-    ["honking", "start engine"]
+sudo apt install python3-pyaudio
+sudo apt install sox
+sudo pip3 install -U sox --break-system-packages
 ```
 
-- Select gpt model
+To enable higher-quality offline speech, download a Piper voice and point `PIPER_VOICE_PATH` to it. Example (replace the URL with your preferred voice):
 
-    The Example program will submit the current picture taken by the camera when sending the question, so as to use the image analysis function of `gpt-4o` or `gpt-4o-mini`. Of course, you can also choose `gpt3.5-turbo` or other models
+```bash
+mkdir -p ~/picar-x/gpt_examples/voices
+curl -L -o ~/picar-x/gpt_examples/voices/en_US-amy-low.onnx \
+  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx
+curl -L -o ~/picar-x/gpt_examples/voices/en_US-amy-low.onnx.json \
+  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/en_US-amy-low.onnx.json
+```
 
 ----------------------------------------------------------------
 
-## Set Key for example
+## Configure OpenRouter access
 
-Confirm that `keys.py` is configured correctly
+1. Create an API key at <https://openrouter.ai/keys> and copy it into `OPENROUTER_API_KEY` inside `gpt_examples/keys.py`.
+2. Pick a chat model (for example `openai/gpt-4o-mini` or `google/gemini-flash-1.5`) and set `OPENROUTER_MODEL`.
+3. Optionally set `OPENROUTER_REFERER` and `OPENROUTER_SITE_TITLE` so your traffic is attributed correctly in the OpenRouter dashboard.
+4. Adjust `OPENROUTER_TTS_MODEL` and `OPENROUTER_STT_MODEL` if you want non-default audio backends supported by OpenRouter.
+
+The default system prompt in `OPENROUTER_SYSTEM_PROMPT` already nudges the assistant to respond with a Python dict containing `actions` and `answer`, which keeps the demo logic unchanged.
+
+----------------------------------------------------------------
 
 ## Run
 
-- Run with vioce
+- Voice controlled mode
 
 ```bash
 sudo python3 gpt_car.py
 ```
 
-- Run with keyboard
+- Voice input with an alternate Piper voice
+
+```bash
+sudo python3 gpt_car.py --voice-path voices/en/en_GB/southern_english_female/low/en_GB-southern_english_female-low.onnx
+```
+
+- Keyboard input mode
 
 ```bash
 sudo python3 gpt_car.py --keyboard
 ```
 
-- Run without image analysis
+- Run without uploading camera frames
 
 ```bash
 sudo python3 gpt_car.py --keyboard --no-img
 ```
 
 > [!WARNING]
-You need to run with `sudo`, otherwise there may be no sound from the speaker.
-For certain Robot HATs, you might need to turn on the speaker switch with the command `"pinctrl set 20 op dh"` or `"robot-hat enable_speaker"`
+You must run the examples with `sudo`, otherwise the speaker may remain muted.
+Some Robot HAT revisions also need `pinctrl set 20 op dh` or `robot-hat enable_speaker` before playback.
 
-## Modify parameters [optional]
+----------------------------------------------------------------
 
-- Set language of STT
+## Tuning options
 
-    Config `LANGUAGE` variable in the file `gpt_car.py` to improve STT accuracy and latency, `"LANGUAGE = []"`means supporting all languages, but it may affect the accuracy and latency of the speech-to-text (STT) system.
-    <https://platform.openai.com/docs/api-reference/audio/createTranscription#audio-createtranscription-language>
+- **STT language filter** – tweak the `LANGUAGE` list in `gpt_car.py` to bias transcription towards specific locales.
+- **TTS gain** – change `VOLUME_DB` in `gpt_car.py` to increase or reduce post-processing volume (values above `5` may distort).
+- **Voice selection** – set `TTS_VOICE` to any voice supported by the configured TTS model (for example `alloy`, `echo`, `nova`). When falling back to local `espeak`, unsupported names automatically map to the default English voice.
+- **Voice style** – customise `VOICE_INSTRUCTIONS` to steer generated speech tone.
+- **TTS backend** – leave `OPENROUTER_TTS_MODEL` populated to call the OpenRouter `/audio/speech` endpoint, set it to an empty string to skip the network call, and fill in `PIPER_VOICE_PATH` (plus optional `PIPER_SPEAKER_ID` / `PIPER_LENGTH_SCALE`) for Piper-based synthesis. If Piper is unavailable, the script finally falls back to `espeak`.
+- **Runtime voice override** – add `--voice-path /path/to/model.onnx` to the launch command to try a different Piper voice without editing `keys.py`. Relative paths resolve from `gpt_examples/`.
 
-- Set TTS volume gain
+----------------------------------------------------------------
 
-    After TTS, the audio volume will be increased using sox, and the gain can be set through the `"VOLUME_DB"` parameter, preferably not exceeding `5`, as going beyond this might result in audio distortion.
+## Piper voice reference
 
-- Select TTS voice role
+| Alias | Voice path (relative to `gpt_examples/`) | Accent / Notes |
+| --- | --- | --- |
+| `amy` | `voices/en/en_US/amy/low/en_US-amy-low.onnx` | US female, fast to synthesize |
+| `lessac` | `voices/en/en_US/lessac/low/en_US-lessac-low.onnx` | US neutral narrator tone |
+| `southern_english_female` | `voices/en/en_GB/southern_english_female/low/en_GB-southern_english_female-low.onnx` | UK southern female |
 
-    Config `TTS_VOICE` variable in the file `gpt_car.py` to select the TTS voice role counld be `"alloy, echo, fable, onyx, nova, and shimmer"`
+Switch voices at launch with `--voice-path voices/.../model.onnx`, or set `PIPER_VOICE_PATH` in `keys.py` for a permanent default.
 
-
-- Vibe (VOICE_INSTRUCTIONS)
-
-    Config `VOICE_INSTRUCTIONS` variable in the file `gpt_car.py` to change the vibe of voice.
-    </br>To_see: https://www.openai.fm/
-    
 ```python
-# openai assistant init
+# OpenRouter assistant init
 # =================================================================
-openai_helper = OpenAiHelper(OPENAI_API_KEY, OPENAI_ASSISTANT_ID, 'picarx')
-
-LANGUAGE = []
-# LANGUAGE = ['zh', 'en'] # config stt language code, https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
-
-# VOLUME_DB = 5
-VOLUME_DB = 3
-
-# select tts voice role, counld be "alloy, echo, fable, onyx, nova, and shimmer"
-# https://platform.openai.com/docs/guides/text-to-speech/supported-languages
-TTS_VOICE = 'echo'
-
-# voice instructions
-# https://www.openai.fm/
-VOICE_INSTRUCTIONS = ""
-
+openrouter_helper = OpenRouterHelper(
+    OPENROUTER_API_KEY,
+    OPENROUTER_MODEL,
+    'picarx',
+    system_prompt=OPENROUTER_SYSTEM_PROMPT,
+    referer=OPENROUTER_REFERER or None,
+    site_title=OPENROUTER_SITE_TITLE or None,
+    stt_model=OPENROUTER_STT_MODEL or None,
+    tts_model=OPENROUTER_TTS_MODEL or None,
+)
 ```
 
 ----------------------------------------------------------------
 
-## Perset actions
+## Preset actions
 
-### Preset actions
+`preset_actions.py` contains helper functions such as `shake_head`, `nod`, `depressed`, `honking`, and `start_engine`. Run it directly to preview available moves:
 
-- `preset_actions.py` contains preset actions, such as `shake_head`, `nod`, `depressed`, `honking`, `start_engine`, etc. You can run this file to see the preset actions:</br>
-  `python3 preset_actions.py`
-
+```bash
+python3 preset_actions.py
+```

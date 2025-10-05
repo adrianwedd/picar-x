@@ -1,5 +1,16 @@
-from openai_helper import OpenAiHelper
-from keys import OPENAI_API_KEY, OPENAI_ASSISTANT_ID
+from openrouter_helper import OpenRouterHelper
+from keys import (
+    OPENROUTER_API_KEY,
+    OPENROUTER_MODEL,
+    OPENROUTER_REFERER,
+    OPENROUTER_SITE_TITLE,
+    OPENROUTER_STT_MODEL,
+    OPENROUTER_SYSTEM_PROMPT,
+    OPENROUTER_TTS_MODEL,
+    PIPER_LENGTH_SCALE,
+    PIPER_SPEAKER_ID,
+    PIPER_VOICE_PATH,
+)
 from preset_actions import *
 from utils import *
 
@@ -16,6 +27,8 @@ import random
 
 import os
 import sys
+import subprocess
+import shutil
 
 os.popen("pinctrl set 20 op dh") # enable robot_hat speake switch
 current_path = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +37,11 @@ os.chdir(current_path) # change working directory
 input_mode = None
 with_img = True
 args = sys.argv[1:]
+
+if '--help' in args or '-h' in args:
+    print("Usage: python gpt_car.py [--keyboard] [--no-img] [--voice-path PATH]")
+    sys.exit(0)
+
 if '--keyboard' in args:
     input_mode = 'keyboard'
 else:
@@ -34,9 +52,26 @@ if '--no-img' in args:
 else:
     with_img = True
 
-# openai assistant init
+cli_voice_path = None
+if '--voice-path' in args:
+    idx = args.index('--voice-path')
+    try:
+        cli_voice_path = args[idx + 1]
+    except IndexError:
+        raise ValueError('--voice-path requires a model path argument')
+
+# openrouter assistant init
 # =================================================================
-openai_helper = OpenAiHelper(OPENAI_API_KEY, OPENAI_ASSISTANT_ID, 'picarx')
+openrouter_helper = OpenRouterHelper(
+    OPENROUTER_API_KEY,
+    OPENROUTER_MODEL,
+    'picarx',
+    system_prompt=OPENROUTER_SYSTEM_PROMPT,
+    referer=OPENROUTER_REFERER or None,
+    site_title=OPENROUTER_SITE_TITLE or None,
+    stt_model=OPENROUTER_STT_MODEL or None,
+    tts_model=OPENROUTER_TTS_MODEL if OPENROUTER_TTS_MODEL != "" else "",
+)
 
 LANGUAGE = []
 # LANGUAGE = ['zh', 'en'] # config stt language code, https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
@@ -53,6 +88,115 @@ TTS_VOICE = 'echo'
 VOICE_INSTRUCTIONS = ""
 
 SOUND_EFFECT_ACTIONS = ["honking", "start engine"]
+
+# local tts helpers
+# =================================================================
+REMOTE_TTS_VOICES = {"alloy", "echo", "fable", "onyx", "nova", "shimmer"}
+
+_piper_command = os.environ.get("PIPER_COMMAND", "piper")
+if not os.path.isabs(_piper_command):
+    _piper_command = shutil.which(_piper_command) or _piper_command
+if not os.path.isabs(_piper_command):
+    candidate = os.path.join(os.path.dirname(sys.executable), os.path.basename(_piper_command))
+    if os.path.exists(candidate):
+        _piper_command = candidate
+
+resolved_piper_voice = cli_voice_path.strip() if cli_voice_path else PIPER_VOICE_PATH.strip()
+if resolved_piper_voice and not os.path.isabs(resolved_piper_voice):
+    resolved_piper_voice = os.path.join(current_path, resolved_piper_voice)
+
+try:
+    resolved_piper_speaker = int(PIPER_SPEAKER_ID) if PIPER_SPEAKER_ID != "" else None
+except ValueError:
+    resolved_piper_speaker = PIPER_SPEAKER_ID or None
+
+try:
+    resolved_piper_length_scale = float(PIPER_LENGTH_SCALE) if PIPER_LENGTH_SCALE != "" else None
+except ValueError:
+    resolved_piper_length_scale = None
+
+
+def _normalise_local_voice(voice: str) -> str:
+    if not voice:
+        return "en"
+    if voice.lower() in REMOTE_TTS_VOICES:
+        return "en"
+    return voice
+
+
+def _ensure_output_directory(path: str) -> None:
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+
+def synthesize_with_piper(
+    text: str,
+    output_file: str,
+    model_path: str,
+    speaker: str | int | None = None,
+    length_scale: float | None = None,
+) -> bool:
+    if not model_path:
+        return False
+
+    candidates = [model_path]
+    if not os.path.isabs(model_path):
+        candidates.insert(0, os.path.join(current_path, model_path))
+
+    resolved_model = None
+    for path in candidates:
+        if os.path.exists(path):
+            resolved_model = path
+            break
+
+    if resolved_model is None:
+        print(f"tts err: piper voice not found ({model_path})")
+        return False
+
+    config_path = resolved_model + ".json"
+    if not os.path.exists(config_path) and resolved_model.endswith(".onnx"):
+        alt_config = resolved_model + ".json"
+        alt_guess = resolved_model.replace(".onnx", ".onnx.json")
+        config_path = alt_guess if os.path.exists(alt_guess) else config_path
+
+    cmd = [_piper_command, "--model", resolved_model, "--output_file", output_file]
+    if os.path.exists(config_path):
+        cmd.extend(["--config", config_path])
+    if speaker is not None:
+        cmd.extend(["--speaker", str(speaker)])
+    if length_scale is not None:
+        cmd.extend(["--length_scale", str(length_scale)])
+
+    try:
+        _ensure_output_directory(output_file)
+        subprocess.run(cmd, input=text.encode("utf-8"), check=True)
+        return True
+    except FileNotFoundError:
+        print("tts err: piper command not found")
+        return False
+    except subprocess.CalledProcessError as exc:
+        print(f"tts err: {exc}")
+        return False
+
+
+def synthesize_with_espeak(text: str, output_file: str, voice: str = "en") -> bool:
+    try:
+        _ensure_output_directory(output_file)
+        voice_arg = _normalise_local_voice(voice)
+        cmd = ["espeak", "-w", output_file]
+        if voice_arg:
+            cmd.extend(["-v", voice_arg])
+        cmd.append(text)
+
+        subprocess.run(cmd, check=True)
+        return True
+    except FileNotFoundError:
+        print("tts err: espeak command not found")
+        return False
+    except subprocess.CalledProcessError as exc:
+        print(f"tts err: {exc}")
+        return False
 
 # car init 
 # =================================================================
@@ -255,7 +399,7 @@ def main():
             # ----------------------------------------------------------------
             gray_print('stt ...')
             st = time.time()
-            _result = openai_helper.stt(audio, language=LANGUAGE)
+            _result = openrouter_helper.stt(audio, language=LANGUAGE)
             gray_print(f"stt takes: {time.time() - st:.3f} s")
 
             if _result == False or _result == "":
@@ -289,44 +433,70 @@ def main():
         if with_img:
             img_path = './img_imput.jpg'
             cv2.imwrite(img_path, Vilib.img)
-            response = openai_helper.dialogue_with_img(_result, img_path)
+            response = openrouter_helper.dialogue_with_img(_result, img_path)
         else:
-            response = openai_helper.dialogue(_result)
+            response = openrouter_helper.dialogue(_result)
 
         gray_print(f'chat takes: {time.time() - st:.3f} s')
 
         # actions & TTS
         # ----------------------------------------------------------------
-        _sound_actions = [] 
+        _sound_actions = []
+        actions = []
+        answer = ''
         try:
             if isinstance(response, dict):
-                if 'actions' in response:
-                    actions = list(response['actions'])
-                else:
-                    actions = ['stop']
+                raw_actions = response.get('actions', []) or []
+                raw_answer = response.get('answer', '')
+                answer = raw_answer if isinstance(raw_answer, str) else str(raw_answer)
 
-                if 'answer' in response:
-                    answer = response['answer']
-                else:
-                    answer = ''
+                extra_speak_segments = []
 
-                if len(answer) > 0:
-                    _actions = list.copy(actions)
-                    for _action in _actions:
-                        if _action in SOUND_EFFECT_ACTIONS:
-                            _sound_actions.append(_action)
-                            actions.remove(_action)
+                for item in raw_actions:
+                    action_name = None
+                    if isinstance(item, str):
+                        action_name = item
+                    elif isinstance(item, dict):
+                        action_type = item.get('type')
+                        if action_type == 'speak':
+                            speak_text = item.get('text')
+                            if speak_text:
+                                extra_speak_segments.append(str(speak_text))
+                            continue
+                        elif isinstance(action_type, str):
+                            action_name = action_type
+                        else:
+                            gray_print(f"skip unsupported action payload: {item}")
+                            continue
+                    else:
+                        gray_print(f"skip unsupported action: {item}")
+                        continue
+
+                    if not action_name:
+                        continue
+
+                    if action_name in SOUND_EFFECT_ACTIONS:
+                        _sound_actions.append(action_name)
+                    elif action_name in actions_dict:
+                        actions.append(action_name)
+                    else:
+                        gray_print(f"unknown action '{action_name}' ignored")
+
+                if extra_speak_segments:
+                    extra_text = " ".join(extra_speak_segments).strip()
+                    if extra_text:
+                        answer = f"{answer} {extra_text}".strip() if answer else extra_text
 
             else:
                 response = str(response)
-                if len(response) > 0:
-                    actions = []
+                if response:
                     answer = response
 
-        except:
+        except Exception as exc:
+            print(f"response parsing error: {exc}")
             actions = []
             answer = ''
-    
+
         try:
             # ---- tts ----
             _tts_status = False
@@ -334,7 +504,30 @@ def main():
                 st = time.time()
                 _time = time.strftime("%y-%m-%d_%H-%M-%S", time.localtime())
                 _tts_f = f"./tts/{_time}_raw.wav"
-                _tts_status = openai_helper.text_to_speech(answer, _tts_f, TTS_VOICE, response_format='wav', instructions=VOICE_INSTRUCTIONS) # alloy, echo, fable, onyx, nova, and shimmer
+
+                if openrouter_helper.tts_model:
+                    _tts_status = openrouter_helper.text_to_speech(
+                        answer,
+                        _tts_f,
+                        TTS_VOICE,
+                        response_format='wav',
+                        instructions=VOICE_INSTRUCTIONS,
+                    )
+                    if not _tts_status:
+                        gray_print('remote tts unavailable, attempting local Piper/espeak')
+
+                if not _tts_status and resolved_piper_voice:
+                    _tts_status = synthesize_with_piper(
+                        answer,
+                        _tts_f,
+                        resolved_piper_voice,
+                        resolved_piper_speaker,
+                        resolved_piper_length_scale,
+                    )
+
+                if not _tts_status:
+                    _tts_status = synthesize_with_espeak(answer, _tts_f, TTS_VOICE)
+
                 if _tts_status:
                     tts_file = f"./tts/{_time}_{VOLUME_DB}dB.wav"
                     _tts_status = sox_volume(_tts_f, tts_file, VOLUME_DB)
