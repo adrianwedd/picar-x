@@ -21,13 +21,48 @@
 - A helper can turn it on and type commands on the computer.
 
 ## Fun Things To Try
-- `example/1.move.py` – See the wheels turn.
-- `example/2.keyboard_control.py` – Drive with the keys `W A S D`.
-- `example/3.tts_example.py` – Make the car talk and play music.
-- `example/4.avoiding_obstacles.py` – Watch it stop before bumping into things.
-- `gpt_examples/gpt_car.py --keyboard` – Have a chatty assistant control the car! (Use with an adult because it needs an internet connection.)
 
-Each program is explained in `docs/EXAMPLE_GUIDE.md`. Ask your grown-up to help you open it.
+| Program | What happens? | How to play |
+| --- | --- | --- |
+| `example/1.move.py` | The wheels spin forward and the front wheels steer left and right. | Watch from a safe distance while the car is lifted so the wheels can spin freely. |
+| `example/2.keyboard_control.py` | You drive the car with the keys `W A S D`, and move the camera with `I J K L`. | Sit with a helper who can type. Drive slowly and avoid pets! |
+| `example/3.tts_example.py` | The car honks, plays a song, and says “Hello.” | Press the keys shown on screen to make different sounds. |
+| `example/4.avoiding_obstacles.py` | The car drives forward and turns or backs up when it sees something in front of it. | Place a box or toy in front of the car and watch it react. |
+| `example/5.minecart_plus.py` | The car follows a dark line on the floor. | Ask a helper to draw a thick black track and let the car follow it. |
+| `example/6.cliff_detection.py` | The car stops and backs away when it reaches the edge of a table or a bright line. | Try it near a bright strip or edge (with help so it doesn’t fall). |
+| `example/7.display.py` | A special screen shows colors, faces, and QR codes the camera sees. | Use the keyboard to switch modes and watch the display with an adult. |
+| `example/8.stare_at_you.py` | The camera looks left, right, up, and down to follow your face. | Smile at the car and see it “stare” at you. |
+| `example/9.record_video.py` | Start and stop video recordings from the keyboard. | Make a short movie of your car driving around. |
+| `example/10.bull_fight.py` | The car turns toward red objects and chases them. | Wave a red toy and see the car follow it. |
+| `example/11.video_car.py` | Control the car from a computer screen, take photos, and see live video. | Ask an adult to start the program, then drive carefully while watching the video feed. |
+| `example/12.treasure_hunt.py` | The car tells you a color to find and cheers when it sees it. | Hold up colored cards and try the one it asks for. |
+| `example/13.app_control.py` | Drive the car with a phone/tablet app, use line-following, horn, and more. | Pair the SunFounder app (adult help needed) and explore the buttons. |
+
+Each program is explained in `docs/EXAMPLE_GUIDE.md`. Ask your grown-up to help you open it and start the programs safely.
+
+## Parent / Mentor Corner – What Each Program Exercises
+
+| Program | Focused Hardware/Library | Notes |
+| --- | --- | --- |
+| `example/1.move.py` | `picarx.Picarx` motors & steering servo | Calls `forward()` and `set_dir_servo_angle()` to confirm drivetrain calibration. |
+| `example/2.keyboard_control.py` | `readchar`, grayscale, camera servos | Demonstrates keyboard event loop, includes helpers to persist grayscale references in `/opt/picar-x/picar-x.conf`. |
+| `example/3.tts_example.py` | `robot_hat.Music`, `robot_hat.TTS` | Exercises audio stack; ensure speaker line (`GPIO20`) is high. |
+| `example/4.avoiding_obstacles.py` | Ultrasonic sensor via `Picarx.ultrasonic` | Simple distance thresholds (Safe 40 cm, Danger 20 cm). Adjust constants for different rooms. |
+| `example/5.minecart_plus.py` | Grayscale array, line following logic | Uses `get_line_status()`; requires prior calibration (`example/calibration/grayscale_calibration.py`). |
+| `example/6.cliff_detection.py` | Grayscale + TTS | Alerts via speech when reflectance drops below cliff threshold. |
+| `example/7.display.py` | Vilib Flask server, keyboard controls | Starts camera stream (`Vilib.display`); keys toggle color, face, QR, recording. |
+| `example/8.stare_at_you.py` | Face detection, pan/tilt servos | Maps face centroid to servo angles with clamping. |
+| `example/9.record_video.py` | Vilib recorder | Manages recording state machine (`record/pause/stop`) writing to `~/Videos/picar-x`. |
+| `example/10.bull_fight.py` | Color detection driving loop | Uses `Vilib.color_detect('red')` and servo corrections toward target. |
+| `example/11.video_car.py` | Mixed keyboard teleop + photo capture | Streams MJPEG (`Vilib.display(local=True,web=True)`) and writes snapshots to `~/Pictures/picar-x/`. |
+| `example/12.treasure_hunt.py` | Color detect + threading + TTS | Randomly selects target colors and announces via `robot_hat.TTS`. |
+| `example/13.app_control.py` | SunFounderController app integration | Publishes telemetry and handles joystick/voice toggles, line-following, obstacle avoidance. |
+| `example/calibration/` | Grayscale sensor calibration | Writes reference values to `fileDB` entries. |
+| `gpt_examples/gpt_car.py` | OpenRouter chat + Piper TTS | Requires mic, speaker, optional camera; fallback to Piper voice when OpenRouter TTS disabled. |
+| `scripts/hourly_chime.py` | `robot_hat.TTS`, scheduling | Speaks time hourly (08:00–19:00). |
+| `scripts/saytime.py` | `robot_hat.TTS` | Speaks current time on demand; customizable prefix/language. |
+
+For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.md#Other Utilities`, and `docs/NEXT_STEPS.md`.
 
 ## Talking to Your Car (with Help)
 - Have a supervisor run `gpt_examples/gpt_car.py --keyboard` so you can type messages to the car.
