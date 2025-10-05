@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The core Python package lives in `picarx/`, with `picarx.py` exposing motor, servo, ultrasonic, and grayscale control plus `/opt/picar-x/picar-x.conf` calibration helpers. Example-driving scripts are grouped under `example/`; the `calibration/` subfolder and `servo_zeroing.py` are the quickest way to align hardware before testing new behaviors (see `docs/EXAMPLE_GUIDE.md` for per-script details). Conversational and GPT-enabled workflows sit in `gpt_examples/` alongside `tutorial_*.png` walkthroughs and helper utilities. Audio assets for reactions and prompts are stored in `musics/` and `sounds/`, while provisioning helpers such as `autostart.service` and `i2samp.sh` support deployment on Raspberry Pi OS.
+The core Python package lives in `picarx/`, with `picarx.py` exposing motor, servo, ultrasonic, and grayscale control plus `/opt/picar-x/picar-x.conf` calibration helpers. Example-driving scripts are grouped under `example/`; the `calibration/` subfolder and `servo_zeroing.py` are the quickest way to align hardware before testing new behaviors (see `docs/EXAMPLE_GUIDE.md` for per-script details and `docs/CODEX_AGENT_NOTES.md` for local-agent tips). Conversational and GPT-enabled workflows sit in `gpt_examples/` alongside `tutorial_*.png` walkthroughs and helper utilities. Audio assets for reactions and prompts are stored in `musics/` and `sounds/`, while provisioning helpers such as `autostart.service` and `i2samp.sh` support deployment on Raspberry Pi OS.
 
 ## Build, Test, and Development Commands
 Use an isolated env when iterating:

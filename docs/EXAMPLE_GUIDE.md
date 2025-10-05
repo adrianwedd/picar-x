@@ -24,6 +24,7 @@ This guide catalogs every script shipped under `example/` and `gpt_examples/`, s
 | `gpt_examples/gpt_car.py` | GPT-driven agent with Piper fallback | OpenRouter key, mic, speaker, camera
 | `gpt_examples/preset_actions.py` | Preview canned actions/sounds | Motors/servos connected
 | `scripts/hourly_chime.py` | Hourly time announcement (08:00–19:00) | Speaker, run with `sudo`
+| `scripts/saytime.py` | Speak the current time on demand | Speaker, run with `sudo`
 
 Scripts not listed in the table are either modules imported elsewhere or legacy helpers.
 
@@ -134,6 +135,10 @@ Scripts not listed in the table are either modules imported elsewhere or legacy 
 - Announces the current time on the hour between 08:00 and 19:00 using the Robot HAT speaker.
 - Run with `sudo python3 scripts/hourly_chime.py`; keep the Pi powered and the speaker enabled (for some hats, `pinctrl set 20 op dh`).
 - Modify `START_HOUR`/`END_HOUR` in the script to change the schedule.
+
+### scripts/saytime.py
+- Announces the current time once. Supports optional `--lang` and `--prefix` arguments to customize voice and phrasing.
+- Run with `sudo python3 scripts/saytime.py` whenever you want a spoken clock update.
 
 ## Operational Checklist
 
