@@ -74,6 +74,24 @@ For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.m
 - Pretend the car is delivering tiny packages.
 - Draw a track on paper with a thick black line and try the line-following program.
 - Turn the car into a friendly pet robot. Give it a name and make it “talk” using the TTS program.
+- Ask a Codex helper (a friendly coding agent) to write a new mini-game! Try saying, “Can you make the car dance with a new program?” and run the script together with an adult.
+
+## Make New Tricks with Codex (Kid Version)
+1. **Grab a grown-up.** Codex needs an adult partner to type and keep things safe.
+2. **Explain your idea clearly.** Example: “Codex, please create a program that makes PiCar-X spin in a circle and flash its lights.”
+3. **Let Codex write the code.** The helper will create a new Python file (maybe inside the `example/` folder).
+4. **Run it together.** In the terminal, type:
+   ```bash
+   cd /home/pi/picar-x
+   sudo python3 example/my_new_trick.py
+   ```
+5. **Test, tweak, repeat!** If the car moves too fast or slow, ask Codex to adjust the numbers.
+
+### Kid-Friendly Tech Tips
+- Programs that start with `sudo python3` usually talk to motors or speakers.
+- If the car says `ModuleNotFoundError`, it means a library is missing—ask Codex or an adult to install it.
+- To stop a script quickly, press `Ctrl` + `C` twice.
+- Save new ideas in a notebook so Codex can help you build them later.
 
 ## Keep Learning
 - `docs/CODEX_AGENT_NOTES.md` and `docs/CODEX_AGENT_NOTES_PI.md` (for adults) explain how grown-ups can fix things.
