@@ -25,6 +25,7 @@ This guide catalogs every script shipped under `example/` and `gpt_examples/`, s
 | `gpt_examples/preset_actions.py` | Preview canned actions/sounds | Motors/servos connected
 | `scripts/hourly_chime.py` | Hourly time announcement (08:00–19:00) | Speaker, run with `sudo`
 | `scripts/saytime.py` | Speak the current time on demand | Speaker, run with `sudo`
+| `gpt_examples/friendly_logger.py` | Colorful kid-friendly logging helper | Import and call `friendly_log(...)` in demos
 
 Scripts not listed in the table are either modules imported elsewhere or legacy helpers.
 
@@ -139,6 +140,10 @@ Scripts not listed in the table are either modules imported elsewhere or legacy 
 ### scripts/saytime.py
 - Announces the current time once. Supports optional `--lang` and `--prefix` arguments to customize voice and phrasing.
 - Run with `sudo python3 scripts/saytime.py` whenever you want a spoken clock update.
+
+### gpt_examples/friendly_logger.py
+- Provides the `friendly_log` helper used by `example/2.keyboard_control.py` to print emoji-rich, color-coded messages.
+- Import with `from gpt_examples.friendly_logger import friendly_log` and call `friendly_log("move", "Zoom!", color="green")` to add playful logging to new demos.
 
 ## Operational Checklist
 
