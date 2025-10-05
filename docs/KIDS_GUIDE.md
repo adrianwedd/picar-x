@@ -18,7 +18,20 @@
 - Check that all wires are plugged in firmly.
 - Make sure the battery is full or plug in a safe power supply.
 - Gently lift the PiCar-X so the wheels can spin without hitting anything when you test it.
-- A helper can turn it on and type commands on the computer.
+- Ask a helper to turn the car on and log in to the computer.
+
+### Step-by-Step: Running a Program Together
+1. **Open a terminal** (black window with text) on the Pi or on a computer connected with SSH.
+2. **Go to the robot’s folder:**
+   ```bash
+   cd /home/pi/picar-x
+   ```
+3. **Choose a demo** from the table below.
+4. **Type `sudo python3 <path/to/demo.py>`** and press Enter.
+5. **Watch what happens!** Keep hands away from the wheels.
+6. **Stop anytime** with `Ctrl` + `C` (press the keys at the same time). Press twice if the program keeps running.
+
+> Grown-ups: running with `sudo` gives the script permission to control hardware (motors, speaker, sensors). Stay nearby while kids experiment.
 
 ## Fun Things To Try
 
@@ -68,6 +81,7 @@ For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.m
 - Have a supervisor run `gpt_examples/gpt_car.py --keyboard` so you can type messages to the car.
 - To let the car listen to your voice, run it without `--keyboard` and talk loudly and clearly.
 - Always let an adult handle the microphone and speaker wires. Make sure the speaker is turned on (`sudo pinctrl set 20 op dh`).
+- If the car says it cannot hear you, stop the program (`Ctrl` + `C`), check the microphone plug, and try again.
 
 ## Using Your Imagination
 - Build an obstacle course with toys and boxes.
@@ -92,6 +106,13 @@ For deeper technical context, see `docs/EXAMPLE_GUIDE.md`, `docs/EXAMPLE_GUIDE.m
 - If the car says `ModuleNotFoundError`, it means a library is missing—ask Codex or an adult to install it.
 - To stop a script quickly, press `Ctrl` + `C` twice.
 - Save new ideas in a notebook so Codex can help you build them later.
+
+## If Something Goes Wrong
+- **Car won’t move?** Check the battery and make sure the wheels aren’t touching the ground while testing.
+- **Car is too fast?** Ask Codex to lower the speed number in the code (for example, change `forward(50)` to `forward(20)`).
+- **No sound?** Run `sudo pinctrl set 20 op dh` and try the `saytime` program again.
+- **Camera not working?** Ask an adult to gently press the camera ribbon cable back in place and reboot the Pi.
+- **Unsure what a part does?** Open `docs/EXAMPLE_GUIDE.md` for more explanations or ask Codex for help.
 
 ## Keep Learning
 - `docs/CODEX_AGENT_NOTES.md` and `docs/CODEX_AGENT_NOTES_PI.md` (for adults) explain how grown-ups can fix things.
